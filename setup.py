@@ -13,7 +13,12 @@ setup(
     ],
 #    packages=find_packages(where='src'),
     py_modules=['sync53'],
-    install_requires=['click', 'requests', 'boto'],
+    install_requires=[
+        'boto',
+        'click',
+        'configparser',
+        'requests',
+    ],
     entry_points = {
         'console_scripts': [
             'sync53=sync53:main',

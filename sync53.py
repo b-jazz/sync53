@@ -1,16 +1,16 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import configparser
 import os.path
-import requests
 import time
 
 import boto.route53
-#import click
+import click
+import configparser
+import requests
 
+#IP_URLS = ['http://icanhazip.com', 'http://wtfismyip.com/text']
 IP_URL = 'http://icanhazip.com'
 AWS_CONFIG = '~/.aws/credentials'
-DOMAIN = 'example.com.'
 
 def get_my_ip():
     return requests.get(IP_URL).text.strip()
@@ -28,27 +28,41 @@ def get_aws_credentials():
     else:
         raise IOError('Unable to read AWS credentials')
 
-def set_my_ip(hostname, ip):
+
+def set_my_ip(domain, hostname, ip):
     (key_id, secret) = get_aws_credentials()
     route53 = boto.route53.connection.Route53Connection(aws_access_key_id=key_id,
                                                         aws_secret_access_key=secret)
-    zone_id = route53.get_hosted_zone_by_name(DOMAIN)['GetHostedZoneResponse']['HostedZone']['Id']
-    print('zone_id = %s' % zone_id)
-    fqdn = '%s.%s' % (hostname, DOMAIN)
-    zone = route53.get_zone(DOMAIN)
+    if hostname:
+        fqdn = '.'.join([hostname, domain])
+    else:
+        fqdn = domain
+    zone = route53.get_zone(domain)
     status = zone.update_a(fqdn, ip)
-    print('Update status: %s' % status.status)
-    print('Sleeping 60 seconds...')
-    time.sleep(60.0)
-    status.update()
-    print('Update status: %s' % status.status)
+    print(status.status, sep='', end='', flush=True)
+    while True:
+        status.update()
+        if status.status == 'PENDING':
+            print('.', sep='', end='', flush=True)
+            time.sleep(2.0)
+        else:
+            print(status.status)
+            break
 
 
-def main():
+@click.command()
+@click.option('-d', '--domain', required=True,
+              help='Top level domain managed in Route53')
+@click.option('-H', '--hostname', required=False,
+              help='Optional hostname to set the DNS A record on, otherwise set A record on the top level domain.')
+def main(domain, hostname):
+    """
+    Find your public facing IP address, and update the DNS information that
+    is stored on AWS's Route53 DNS servers.
+    """
     ip = get_my_ip()
     print('my ip = %s' % ip)
-    set_my_ip('dnssync', ip)
+    set_my_ip(domain, hostname, ip)
 
 if __name__ == '__main__':
     main()
-
