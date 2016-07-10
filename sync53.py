@@ -8,7 +8,8 @@ import click
 import configparser
 import requests
 
-#IP_URLS = ['http://icanhazip.com', 'http://wtfismyip.com/text']
+
+#IP_URLS = ['http://icanhazip.com', 'http://wtfismyip.com/text', 'http://ip.42.pl/raw']
 IP_URL = 'http://icanhazip.com'
 AWS_CONFIG = '~/.aws/credentials'
 
