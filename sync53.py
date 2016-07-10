@@ -12,8 +12,10 @@ import requests
 IP_URL = 'http://icanhazip.com'
 AWS_CONFIG = '~/.aws/credentials'
 
+
 def get_my_ip():
     return requests.get(IP_URL).text.strip()
+
 
 def get_aws_credentials():
     parser = configparser.ConfigParser()
@@ -54,7 +56,8 @@ def set_my_ip(domain, hostname, ip):
 @click.option('-d', '--domain', required=True,
               help='Top level domain managed in Route53')
 @click.option('-H', '--hostname', required=False,
-              help='Optional hostname to set the DNS A record on, otherwise set A record on the top level domain.')
+              help=('Optional hostname to set the DNS A record on, '
+                    'otherwise set A record on the top level domain.'))
 def main(domain, hostname):
     """
     Find your public facing IP address, and update the DNS information that
@@ -63,6 +66,7 @@ def main(domain, hostname):
     ip = get_my_ip()
     print('my ip = %s' % ip)
     set_my_ip(domain, hostname, ip)
+
 
 if __name__ == '__main__':
     main()

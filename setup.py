@@ -11,7 +11,6 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
     ],
-#    packages=find_packages(where='src'),
     py_modules=['sync53'],
     install_requires=[
         'boto',
