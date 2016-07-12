@@ -9,14 +9,40 @@ import configparser
 import requests
 
 
-#IP_URLS = ['http://icanhazip.com', 'http://wtfismyip.com/text', 'http://ip.42.pl/raw']
+IP_URLS = ['http://icanhazip.com', 'http://wtfismyip.com/text', 'http://ip.42.pl/raw']
 IP_URL = 'http://icanhazip.com'
 AWS_CONFIG = '~/.aws/credentials'
 
 
-def get_my_ip():
-    return requests.get(IP_URL).text.strip()
+def get_ip_from_url(url):
+    try:
+        response = requests.get(IP_URL)
+    except Exception as ex:
+        raise LookupError('Exception fetching from {0}: {1}'.format(url, ex))
+    else:
+        if response.ok:
+            return response.text.strip()
+        else:
+            raise LookupError('Unable to fetch IP from %s.' % url)
 
+
+def get_my_ip():
+    success_count = 0
+    unique_ips = set()
+    for url in IP_URLS:
+        try:
+            ip = get_ip_from_url(url)
+        except LookupError as ex:
+            print('{0}'.format(ex))
+        else:
+            success_count += 1
+            print('Found IP: {0}'.format(ip))  # TODO: change this to a debug log
+            unique_ips.add(ip)
+
+    if len(unique_ips) == 1:
+        return unique_ips.pop()
+    else:
+        print('ERROR: Multiple IPs found: {0}'.format(unique_ips))
 
 def get_aws_credentials():
     parser = configparser.ConfigParser()
