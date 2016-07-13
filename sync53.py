@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import os.path
 import time
 
@@ -12,6 +13,10 @@ import requests
 IP_URLS = ['http://icanhazip.com', 'http://wtfismyip.com/text', 'http://ip.42.pl/raw']
 IP_URL = 'http://icanhazip.com'
 AWS_CONFIG = '~/.aws/credentials'
+
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
 
 
 def get_ip_from_url(url):
@@ -36,7 +41,7 @@ def get_my_ip():
             print('{0}'.format(ex))
         else:
             success_count += 1
-            print('Found IP: {0}'.format(ip))  # TODO: change this to a debug log
+            log.debug('Found IP %s from %s', ip, url)
             unique_ips.add(ip)
 
     if len(unique_ips) == 1:
@@ -85,11 +90,16 @@ def set_my_ip(domain, hostname, ip):
 @click.option('-H', '--hostname', required=False,
               help=('Optional hostname to set the DNS A record on, '
                     'otherwise set A record on the top level domain.'))
-def main(domain, hostname):
+@click.option('--debug', required=False, is_flag=True,
+              help='Turn on more verbose debugging information')
+def main(domain, hostname, debug):
     """
     Find your public facing IP address, and update the DNS information that
     is stored on AWS's Route53 DNS servers.
     """
+    if debug:
+        log.setLevel(logging.DEBUG)
+
     ip = get_my_ip()
     print('my ip = %s' % ip)
     set_my_ip(domain, hostname, ip)
