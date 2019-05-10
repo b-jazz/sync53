@@ -2,6 +2,7 @@
 
 import logging
 import os.path
+import socket
 import time
 
 import boto.route53
@@ -48,6 +49,7 @@ def get_my_ip():
         return unique_ips.pop()
     else:
         print('ERROR: Multiple IPs found: {0}'.format(unique_ips))
+
 
 def get_aws_credentials():
     parser = configparser.ConfigParser()
@@ -102,7 +104,17 @@ def main(domain, hostname, debug):
 
     ip = get_my_ip()
     print('my ip = %s' % ip)
-    set_my_ip(domain, hostname, ip)
+
+    try:
+        ip_via_dns = socket.gethostbyname('.'.join([hostname, domain]))
+    except socket.gaierror:
+        ip_via_dns = ''
+
+    if ip != ip_via_dns:
+        log.debug('IP different between DNS and reality.')
+        set_my_ip(domain, hostname, ip)
+    else:
+        log.debug('No need to update Route53. IPs are the same.')
 
 
 if __name__ == '__main__':
