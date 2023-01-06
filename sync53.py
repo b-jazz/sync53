@@ -111,7 +111,7 @@ def main(domain, hostname, debug):
         ip_via_dns = ''
 
     if ip != ip_via_dns:
-        log.debug('IP different between DNS and reality.')
+        log.debug('IP different between DNS (%s) and reality (%s).', ip_via_dns, ip)
         set_my_ip(domain, hostname, ip)
     else:
         log.debug('No need to update Route53. IPs are the same.')
