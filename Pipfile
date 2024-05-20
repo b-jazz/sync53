@@ -10,7 +10,7 @@ boto = "*"
 click = "*"
 configparser = "*"
 requests = "*"
-"sync53" = {path = ".", editable = true}
+sync53 = {file = ".", editable = true}
 
 [requires]
-python_version = "3.6"
+python_version = "3"
