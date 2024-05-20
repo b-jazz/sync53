@@ -6,11 +6,11 @@ name = "pypi"
 [dev-packages]
 
 [packages]
-boto = "*"
 click = "*"
 configparser = "*"
 requests = "*"
 sync53 = {file = ".", editable = true}
+boto3 = "*"
 
 [requires]
 python_version = "3"

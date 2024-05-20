@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 
 import logging
+import os
 import os.path
 import socket
 import time
 
-import boto.route53
+import boto3
 import click
 import configparser
 import requests
 
+HOSTED_ZONE_ID = "Z1FD6RSXBB2GQZ"
 
 IP_URLS = ['http://icanhazip.com', 'http://wtfismyip.com/text', 'http://ip.42.pl/raw']
 IP_URL = 'http://icanhazip.com'
@@ -56,8 +58,8 @@ def get_aws_credentials():
     success = parser.read(os.path.expanduser(AWS_CONFIG))
     if success:
         try:
-            return (parser.get('default', 'aws_access_key_id'),
-                    parser.get('default', 'aws_secret_access_key'))
+            os.environ["AWS_ACCESS_KEY_ID"] = parser.get("default", "aws_access_key_id")
+            os.environ["AWS_SECRET_ACCESS_KEY"] = parser.get("default", "aws_secret_access_key")
         except configparser.NoOptionError:
             print('Unable to find credentials.')
             sys.exit(1)
@@ -65,10 +67,42 @@ def get_aws_credentials():
         raise IOError('Unable to read AWS credentials')
 
 
+def update_a_record(zone_id, domain_name, host_name, new_ip):
+    # Create a Route 53 client
+    client = boto3.client('route53')
+
+    if host_name:
+        fqdn = '.'.join([host_name, domain_name])
+    else:
+        fqdn = domain_name
+     # Prepare the change batch request
+    change_batch = {
+        'Comment': 'Update A record',
+        'Changes': [
+            {
+                'Action': 'UPSERT',
+                'ResourceRecordSet': {
+                    'Name': fqdn,
+                    'Type': 'A',
+                    'TTL': 900,
+                    'ResourceRecords': [{'Value': new_ip}]
+                }
+            }
+        ]
+    }
+
+    # Update the record
+    response = client.change_resource_record_sets(
+        HostedZoneId=zone_id,
+        ChangeBatch=change_batch
+    )
+
+    return response
+
+
 def set_my_ip(domain, hostname, ip):
-    (key_id, secret) = get_aws_credentials()
-    route53 = boto.route53.connection.Route53Connection(aws_access_key_id=key_id,
-                                                        aws_secret_access_key=secret)
+    get_aws_credentials()
+    route53 = boto3.client('route53')
     if hostname:
         fqdn = '.'.join([hostname, domain])
     else:
@@ -112,7 +146,9 @@ def main(domain, hostname, debug):
 
     if ip != ip_via_dns:
         log.debug('IP different between DNS (%s) and reality (%s).', ip_via_dns, ip)
-        set_my_ip(domain, hostname, ip)
+        update_a_record(HOSTED_ZONE_ID, domain, hostname, ip)
+
+        #set_my_ip(domain, hostname, ip)
     else:
         log.debug('No need to update Route53. IPs are the same.')
 
