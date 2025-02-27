@@ -13,7 +13,7 @@ setup(
     ],
     py_modules=['sync53'],
     install_requires=[
-        'boto',
+        'boto3',
         'click',
         'configparser',
         'requests',

@@ -145,9 +145,9 @@ def main(domain, hostname, debug):
         ip_via_dns = ''
 
     if ip != ip_via_dns:
+        get_aws_credentials()
         log.debug('IP different between DNS (%s) and reality (%s).', ip_via_dns, ip)
         update_a_record(HOSTED_ZONE_ID, domain, hostname, ip)
-
         #set_my_ip(domain, hostname, ip)
     else:
         log.debug('No need to update Route53. IPs are the same.')
