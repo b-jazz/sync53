@@ -9,8 +9,8 @@ name = "pypi"
 click = "*"
 configparser = "*"
 requests = "*"
-sync53 = {file = ".", editable = true}
 boto3 = "*"
+sync53 = {file = ".", editable = true}
 
 [requires]
 python_version = "3"
